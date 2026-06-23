@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import './App.css';
 
 const categories = [
@@ -81,6 +82,27 @@ const products = [
 ];
 
 function App() {
+  const [cartItems, setCartItems] = useState([]);
+  const [cartMessage, setCartMessage] = useState('');
+  const [isCartOpen, setIsCartOpen] = useState(false);
+
+  const handleAddToCart = (product) => {
+    setCartItems((current) => {
+      const existing = current.find((item) => item.name === product.name);
+      if (existing) {
+        return current.map((item) =>
+          item.name === product.name ? { ...item, qty: item.qty + 1 } : item
+        );
+      }
+      return [...current, { ...product, qty: 1 }];
+    });
+    setCartMessage(`${product.name} added to cart`);
+    setIsCartOpen(true);
+    window.setTimeout(() => setCartMessage(''), 2500);
+  };
+
+  const cartCount = cartItems.reduce((sum, item) => sum + item.qty, 0);
+
   return (
     <div className="app">
       <header className="header">
@@ -98,9 +120,16 @@ function App() {
             <span>EN</span>
             <span>Sign in</span>
             <span>Returns & Orders</span>
-            <span>🛒 Cart (0)</span>
+            <button
+              type="button"
+              className="header-cart-button"
+              onClick={() => setIsCartOpen((open) => !open)}
+            >
+              🛒 Cart ({cartCount})
+            </button>
           </div>
         </div>
+        {cartMessage && <div className="cart-message">{cartMessage}</div>}
         <nav className="header-nav">
           {categories.map((item) => (
             <a href="/" key={item}>
@@ -151,11 +180,57 @@ function App() {
                     {'☆'.repeat(5 - product.rating)}
                   </div>
                   <p className="price">{product.price}</p>
+                  <button
+                    className="cart-button"
+                    onClick={() => handleAddToCart(product)}
+                  >
+                    Add to cart
+                  </button>
                 </div>
               </article>
             ))}
           </div>
         </section>
+
+        <section className="cart-section">
+          <div className="section-header">
+            <h2>Your cart</h2>
+            <span>{cartCount} item{cartCount === 1 ? '' : 's'}</span>
+          </div>
+          {cartItems.length > 0 ? (
+            <div className="cart-items">
+              {cartItems.map((item) => (
+                <div className="cart-item" key={item.name}>
+                  <span>{item.name}</span>
+                  <span>Qty: {item.qty}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="cart-empty">Your cart is empty. Add a product to see it here.</p>
+          )}
+        </section>
+
+        <aside className={`cart-panel ${isCartOpen ? 'open' : ''}`}>
+          <div className="cart-panel-header">
+            <h3>My Cart</h3>
+            <button type="button" className="close-button" onClick={() => setIsCartOpen(false)}>
+              ✕
+            </button>
+          </div>
+          {cartItems.length > 0 ? (
+            <div className="cart-items">
+              {cartItems.map((item) => (
+                <div className="cart-item" key={item.name}>
+                  <span>{item.name}</span>
+                  <span>Qty: {item.qty}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="cart-empty">Your cart is empty. Add a product to see it here.</p>
+          )}
+        </aside>
 
         <section className="deal-banner">
           <div>
